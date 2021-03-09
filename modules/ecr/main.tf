@@ -31,16 +31,24 @@ resource "aws_ecr_repository_policy" "gotenbreg-repository-policy" {
   }
   EOF
 }
+resource "null_resource" "pull" {
+    provisioner "local-exec"{
+      command="docker pull ${var.docker_gotenberg}"
+    }
+}
 resource "null_resource" "login" {
     provisioner "local-exec" {
         command="aws ecr get-login-password --region ${data.aws_region.region_current.name} | docker login --username AWS --password-stdin ${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.region_current.name}.amazonaws.com"
     }
+    depends_on = [ null_resource.pull]
 }
 resource "null_resource" "tag_image" {
     provisioner "local-exec" {
-        command="docker tag 3fd9a88f1c36 ${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.region_current.name}.amazonaws.com/${aws_ecr_repository.gotenberg-repository.name}:latest"
+        command="docker tag ${var.docker_gotenberg} ${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.region_current.name}.amazonaws.com/${aws_ecr_repository.gotenberg-repository.name}:latest"
     }
-    depends_on = [ null_resource.login ]
+    depends_on = [ null_resource.login,
+                    null_resource.pull
+                  ]
 }
 
 resource "null_resource" "push_image" {
@@ -49,6 +57,7 @@ resource "null_resource" "push_image" {
     }
     depends_on = [ 
                     null_resource.tag_image,
-                    null_resource.login
+                    null_resource.login,
+                    null_resource.pull
                 ]
 }

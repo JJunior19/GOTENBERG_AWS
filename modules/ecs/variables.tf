@@ -16,8 +16,6 @@ variable "departament" {
     type = string
 }
 
-variable "docker_gotenberg" {
-    default = "thecodingmachine/gotenberg"
-    description = "docker image to pull from docker hub"
-    type = string
+variable "repository" {
+    type = any
 }
