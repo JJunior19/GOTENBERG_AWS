@@ -16,6 +16,6 @@ variable "departament" {
     type = string
 }
 
-variable "repository" {
-    type = any
-}
+# variable "repository" {
+#     type = any
+# }
